@@ -1,5 +1,5 @@
 import type { Moment } from "moment";
-import type { TFile } from "obsidian";
+import { TFile, Vault, MetadataCache } from "obsidian";
 import {
   createDailyNote,
   getAllDailyNotes,
@@ -7,5 +7,12 @@ import {
 } from "obsidian-daily-notes-interface";
 
 export async function createDailyNoteIfNeeded(moment: Moment): Promise<TFile> {
-  return getDailyNote(moment, getAllDailyNotes()) || createDailyNote(moment);
+  let dailyNote = await getDailyNote(moment, getAllDailyNotes())
+  if (!dailyNote) {
+    dailyNote = await createDailyNote(moment)
+  }
+
+  let linkText = await MetadataCache.getFileCache(dailyNote).frontmatterLinks[0].link
+  let timeText = 'calendar/' + moment.format('YYYY') + '/' + moment.format('MM') + '/' + moment.format('DD') + '/'
+  return Vault.getFileByPath(timeText + linkText + '.md');
 }
